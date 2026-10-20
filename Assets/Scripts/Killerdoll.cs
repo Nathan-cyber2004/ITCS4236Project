@@ -20,14 +20,16 @@ public class KillerDollAI : MonoBehaviour
     public Animator animator;
 
     private Vector3 targetLocation;
+    private Rigidbody rb;
 
     void Start()
     {
+        rb = GetComponentInParent<Rigidbody>();
         // Pick a random starting point to patrol to
         PickRandomPatrolPoint();
     }
 
-    void Update()
+    void FixedUpdate()
     {
         // Decision Tree for AI States
         switch (currentState)
@@ -56,7 +58,7 @@ public class KillerDollAI : MonoBehaviour
         MoveTowards(targetLocation, moveSpeed);
 
         // If we reach the point pick new one
-        if (Vector3.Distance(transform.position, targetLocation) < 1f)
+        if (Vector3.Distance(new Vector3(transform.position.x, targetLocation.y, transform.position.z), targetLocation) < 1f)
         {
             PickRandomPatrolPoint();
         }
@@ -97,8 +99,10 @@ public class KillerDollAI : MonoBehaviour
     {
         // Lock the Y coordinate to the doll's current height so she doesn't fly
         Vector3 flatTarget = new Vector3(destination.x, transform.position.y, destination.z);
-        transform.position = Vector3.MoveTowards(transform.position, flatTarget, speed * Time.deltaTime);
         transform.LookAt(flatTarget);
+
+        Vector3 direction = (flatTarget - transform.position).normalized;
+        rb.linearVelocity = new Vector3(direction.x * speed, rb.linearVelocity.y, direction.z * speed);
     }
 
     void PickRandomPatrolPoint()
