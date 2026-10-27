@@ -64,7 +64,7 @@ public class KillerDollAI : MonoBehaviour
         // Move towards the current breadcrumb
         MoveTowards(targetLocation, moveSpeed);
 
-        // If we reach the breadcrumb in the doorway/hallway, pick the next visible one!
+        // If we reach the breadcrumb in the doorway/hallway, pick the next visible one
         Vector3 flatPos = new Vector3(transform.position.x, targetLocation.y, transform.position.z);
         if (Vector3.Distance(flatPos, targetLocation) < 1.2f)
         {
@@ -93,7 +93,7 @@ public class KillerDollAI : MonoBehaviour
         // Move towards the player
         MoveTowards(player.position, chaseSpeed);
 
-        // If the player runs far away OR ducks behind a wall out of sight, go back to breadcrumbs!
+        // If the player is too far away or hidden behind a wall, go back to patrolling
         if (Vector3.Distance(transform.position, player.position) > sightRange * 1.5f || !CanSeeTarget(player.position))
         {
             PickNextBreadcrumb();
@@ -103,7 +103,7 @@ public class KillerDollAI : MonoBehaviour
 
     void MoveTowards(Vector3 destination, float speed)
     {
-        // Your original rock-solid movement: zero spinning or teleporting!
+       
         Vector3 flatTarget = new Vector3(destination.x, transform.position.y, destination.z);
         transform.LookAt(flatTarget);
 
@@ -126,17 +126,17 @@ public class KillerDollAI : MonoBehaviour
         }
     }
 
-    // THE ANTI-PING-PONG FIX: 
-    // If she sees more than 1 option, ban the breadcrumb she just came from!
+    
+    // If she sees more than 1 option, prevent her from going back to the last breadcrumb she just came from
     if (visibleBreadcrumbs.Count > 1 && lastBreadcrumb != null)
     {
         visibleBreadcrumbs.Remove(lastBreadcrumb);
     }
 
-    // Save where she is right now as her "last" spot before moving to the new one
+   
     lastBreadcrumb = currentBreadcrumb;
 
-    // Pick a random visible forward breadcrumb!
+    // Pick a random visible forward breadcrumb
     if (visibleBreadcrumbs.Count > 0)
     {
         currentBreadcrumb = visibleBreadcrumbs[Random.Range(0, visibleBreadcrumbs.Count)];
@@ -156,13 +156,13 @@ public class KillerDollAI : MonoBehaviour
         Vector3 start = transform.position + Vector3.up * 0.5f;
         Vector3 end = new Vector3(targetPos.x, transform.position.y + 0.5f, targetPos.z);
 
-        // If the line hits something that isn't the Player, a wall is in the way!
+        
         if (Physics.Linecast(start, end, out RaycastHit hit))
         {
             if (hit.transform == player || hit.transform.IsChildOf(transform))
                 return true;
-            return false; // Blocked by wall or furniture!
+            return false; // Blocked by wall or furniture
         }
-        return true; // Clear line of sight through the doorway!
+        return true; // Clear line of sight through the doorway
     }
 }
