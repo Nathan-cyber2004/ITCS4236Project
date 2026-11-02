@@ -7,6 +7,12 @@ public class InteractableObject : MonoBehaviour, IInteractable
     public Animator animator;
     private bool isOpened;
 
+    void Start()
+    {
+        animator.SetBool("isOpened", false);
+        isOpened = false;
+    }
+
     public string InteractionText
     {
         get
