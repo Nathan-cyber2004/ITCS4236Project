@@ -11,8 +11,9 @@ public class PlayerMovement : MonoBehaviour
     public float sprintCooldown = 2f;
     public bool readyToSprint;
     public float sprintTimer;
-    public float sprintCooldownTimer;
     public bool isSprinting { get; private set; }
+    [SerializeField] private StaminaBar staminaBar;
+    private bool sprintInputMustBeReleased;
     float horizontalInput;
     float verticalInput;
     public float jumpForce = 7f;
@@ -39,8 +40,18 @@ public class PlayerMovement : MonoBehaviour
         readyToJump = true;
         readyToSprint = true;
         sprintTimer = sprintDuration;
-        sprintCooldownTimer = 0f;
+        sprintInputMustBeReleased = false;
         playerSpeed = walkingSpeed;
+
+        if (staminaBar == null)
+        {
+            Debug.LogError("Assign a StaminaBar to PlayerMovement in the Inspector.", this);
+        }
+        else
+        {
+            staminaBar.setMaxStamina(sprintDuration);
+            staminaBar.setStamina(sprintTimer);
+        }
     }
 
     void Update()
@@ -82,35 +93,38 @@ public class PlayerMovement : MonoBehaviour
     private void UpdateSprint()
     {
         bool isMoving = horizontalInput != 0f || verticalInput != 0f;
-        bool wantsToSprint = Input.GetKey(sprintKey) && isPlayerGrounded && isMoving;
-
-        // A depleted sprint must finish its full cooldown before it can be used again.
-        if (!readyToSprint)
+        bool sprintKeyHeld = Input.GetKey(sprintKey);
+        if (!sprintKeyHeld)
         {
-            sprintCooldownTimer = Mathf.Max(0f, sprintCooldownTimer - Time.deltaTime);
-
-            if (sprintCooldownTimer == 0f)
-            {
-                readyToSprint = true;
-                sprintTimer = sprintDuration;
-            }
+            sprintInputMustBeReleased = false;
         }
 
-        isSprinting = readyToSprint && wantsToSprint;
+        bool wantsToSprint = sprintKeyHeld && isPlayerGrounded && isMoving && !sprintInputMustBeReleased;
+        isSprinting = wantsToSprint && sprintTimer > 0f;
 
         if (isSprinting)
         {
             sprintTimer = Mathf.Max(0f, sprintTimer - Time.deltaTime);
 
-            if (sprintTimer == 0f)
+            if (sprintTimer <= 0f)
             {
                 isSprinting = false;
-                readyToSprint = false;
-                sprintCooldownTimer = sprintCooldown;
+                sprintInputMustBeReleased = true;
             }
         }
+        else
+        {
+            float rechargeDuration = Mathf.Max(sprintCooldown, 0.01f);
+            float rechargeRate = sprintDuration / rechargeDuration;
+            sprintTimer = Mathf.Min(sprintDuration, sprintTimer + rechargeRate * Time.deltaTime);
+        }
 
+        readyToSprint = sprintTimer > 0f && !sprintInputMustBeReleased;
         playerSpeed = isSprinting ? sprintSpeed : walkingSpeed;
+        if (staminaBar != null)
+        {
+            staminaBar.setStamina(sprintTimer);
+        }
     }
 
     void MovePlayer()
