@@ -93,6 +93,13 @@ public class KillerDollAI : MonoBehaviour
         // Move towards the player
         MoveTowards(player.position, chaseSpeed);
 
+        float catchDistance = 2f; 
+        if (Vector3.Distance(transform.position, player.position) <= catchDistance)
+        {
+            TriggerJumpscare();
+            return; 
+        }
+
         // If the player is too far away or hidden behind a wall, go back to patrolling
         if (Vector3.Distance(transform.position, player.position) > sightRange * 1.5f || !CanSeeTarget(player.position))
         {
@@ -165,4 +172,57 @@ public class KillerDollAI : MonoBehaviour
         }
         return true; // Clear line of sight through the doorway
     }
+
+    void TriggerJumpscare()
+    {
+
+        // Position her in front of the player at a fixed distance (
+        Transform camTransform = Camera.main.transform;
+        Vector3 flatForward = new Vector3(camTransform.forward.x, 0, camTransform.forward.z).normalized;
+        
+        Vector3 scarePos = camTransform.position + flatForward * 1f;
+        scarePos.y = transform.position.y; // Keep floor height
+        transform.position = scarePos;
+
+        // Lock her rotation directly at the player
+        Vector3 lookDirection = camTransform.position - transform.position;
+        lookDirection.y = 0; 
+        if (lookDirection != Vector3.zero)
+        {
+            transform.rotation = Quaternion.LookRotation(lookDirection);
+        }
+
+        // Freeze her physics to prevent any further movement or rotation
+        if (rb != null)
+        {
+            rb.isKinematic = true; // Instantly freezes all physics forces and stops movement/spinning
+        }
+
+        
+        if (animator != null)
+        {
+            animator.SetTrigger("ScareTrigger");
+        }
+
+        // Start the camera shake and end the game after a short delay
+        StartCoroutine(JumpscareShakeAndEnd());
+        this.enabled = false;
+    }
+
+    // Coroutine to shake the camera and end the game after a delay
+    System.Collections.IEnumerator JumpscareShakeAndEnd()
+    {
+        float timer = 0f;
+        float duration = 1.5f;
+        Vector3 originalPos = transform.position;
+
+        while (timer < duration)
+        {
+            transform.position = originalPos + Random.insideUnitSphere * 0.08f;
+            timer += Time.deltaTime;
+            yield return null;
+        }
+    }
 }
+
+// Add endgame logic here, such as loading a "Game Over" scene or displaying a UI message.
