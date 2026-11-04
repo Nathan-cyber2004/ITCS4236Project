@@ -24,6 +24,7 @@ public class KillerDollAI : MonoBehaviour
     private Transform lastBreadcrumb; 
 
     public Animator animator;
+    public AudioSource jumpscareAudio;
 
     private Vector3 targetLocation;
     private Rigidbody rb;
@@ -202,6 +203,12 @@ public class KillerDollAI : MonoBehaviour
         if (animator != null)
         {
             animator.SetTrigger("ScareTrigger");
+        }
+
+        // Play the horror scream sound effect
+        if (jumpscareAudio != null)
+        {
+            jumpscareAudio.Play();
         }
 
         // Start the camera shake and end the game after a short delay
