@@ -17,6 +17,7 @@ public class KillerDollAI : MonoBehaviour
     public float moveSpeed = 3f;
     public float chaseSpeed = 5f;
     public float sightRange = 15f; 
+    public bool isPlayerDead = false;
 
     [Header("Breadcrumb Settings")]
      public Transform[] breadcrumbs; 
@@ -176,6 +177,18 @@ public class KillerDollAI : MonoBehaviour
 
     void TriggerJumpscare()
     {
+        PlayerMovement playerMovement = player.GetComponentInParent<PlayerMovement>();
+        if (playerMovement != null)
+        {
+            playerMovement.enabled = false;
+        }
+
+        Rigidbody playerRigidbody = player.GetComponentInParent<Rigidbody>();
+        if (playerRigidbody != null)
+        {
+            Vector3 velocity = playerRigidbody.linearVelocity;
+            playerRigidbody.linearVelocity = new Vector3(0f, velocity.y, 0f);
+        }
 
         // Position her in front of the player at a fixed distance (
         Transform camTransform = Camera.main.transform;
@@ -222,13 +235,26 @@ public class KillerDollAI : MonoBehaviour
         float timer = 0f;
         float duration = 1.5f;
         Vector3 originalPos = transform.position;
+        bool jumpscareFinished = animator == null;
 
-        while (timer < duration)
+        while (timer < duration || !jumpscareFinished)
         {
             transform.position = originalPos + Random.insideUnitSphere * 0.08f;
             timer += Time.deltaTime;
+
+            if (!jumpscareFinished)
+            {
+                AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(0);
+                if (stateInfo.IsName("Jumpscare"))
+                {
+                    jumpscareFinished = stateInfo.normalizedTime >= 1f;
+                }
+            }
+
             yield return null;
         }
+
+        isPlayerDead = true;
     }
 }
 

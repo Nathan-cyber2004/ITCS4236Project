@@ -4,6 +4,6 @@ using UnityEngine.SceneManagement;
 public class MainMenuManager : MonoBehaviour
 {
     public void PlayGame() {
-       SceneManager.LoadSceneAsync(1);
+       SceneManager.LoadScene("FinalScene");
     }
 }
