@@ -249,12 +249,13 @@ public class KillerDollAI : MonoBehaviour
                 {
                     jumpscareFinished = stateInfo.normalizedTime >= 1f;
                 }
+                isPlayerDead = true;
             }
 
             yield return null;
         }
 
-        isPlayerDead = true;
+        
     }
 }
 
